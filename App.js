@@ -2,9 +2,11 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { 
   Dimensions,
+  FlatList,
   StyleSheet, 
   Text, 
-  View
+  View,
+  Image,
 } from 'react-native';
 const { width } = Dimensions.get("screen")
 import { EvilIcons } from "@expo/vector-icons"
@@ -57,7 +59,7 @@ const DATA = [
 
 const OVERFLOW_HEIGHT = 70
 const SPACING = 10
-const ITEM_WIDTH = width * 0.8
+const ITEM_WIDTH = width * 0.8 //80% of the screen width
 const ITEM_HEIGHT = ITEM_WIDTH * 1.7
 
 const OverflowItems = ({ data }) => {
@@ -100,9 +102,26 @@ export default function App() {
   const [data, setData] = React.useState(DATA)
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom", "left", "right"]}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar hidden />
       <OverflowItems  data={data}/>
+      <FlatList 
+        data={data}
+        keyExtractor={(_, index) => String(index)}
+        renderItem={({ item, index }) => {
+          return (
+            <View>
+              <Image 
+                source={{ uri: item.poster }}
+                style={{
+                  width: ITEM_WIDTH,
+                  height: ITEM_HEIGHT
+                }}
+              />
+            </View>
+          )
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -136,6 +155,6 @@ const styles = StyleSheet.create({
   },
   overflowContainer: {
     height: OVERFLOW_HEIGHT,
-    //overflow: "hidden", //we want to only show the par of the data in display. If we unComment this, we will see all the data arranged horizontally
+    overflow: "hidden", //we want to only show the par of the data in display. If we unComment this, we will see all the data arranged horizontally
   },
 });
