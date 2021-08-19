@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "reactnd-stack-flatlist-carousel",
+    "slug": "reactnd-stack-flatlist-carousel",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  },
+  "name": "reactnd-stack-flatlist-carousel"
+}
