@@ -6,11 +6,12 @@ import {
   StyleSheet, 
   Text, 
   View,
-  Image,
 } from 'react-native';
+import { useSharedValue } from "react-native-reanimated"
 const { width } = Dimensions.get("screen")
 import { EvilIcons } from "@expo/vector-icons"
 import { SafeAreaView } from "react-native-safe-area-context"
+import PosterCard from './PosterCard';
 
 const DATA = [
   {
@@ -100,6 +101,15 @@ const OverflowItems = ({ data }) => {
 
 export default function App() {
   const [data, setData] = React.useState(DATA)
+  const scrollXIndex = useSharedValue(0)
+
+  /*
+  //for anual testing!
+  React.useEffect(() => {
+    setInterval(() => {
+      scrollXIndex.value = Math.floor(Math.random() * data.length)
+    }, 3000)
+  })*/
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
@@ -146,25 +156,7 @@ export default function App() {
         }}
         renderItem={({ item, index }) => {
           return (
-            <View 
-              style={{ 
-                /**
-                 * In order to create the carousel stack, we need to set the position
-                 *  of each listItem to be absolute so that the items will be stacked 
-                 * in front of each other (like a FrameLayout in android)
-                 */
-                position: "absolute",
-                left: -ITEM_WIDTH / 2, //position the item to the center of the screen by offesting the left position :)
-              }}
-            >
-              <Image 
-                source={{ uri: item.poster }}
-                style={{
-                  width: ITEM_WIDTH,
-                  height: ITEM_HEIGHT
-                }}
-              />
-            </View>
+            <PosterCard item={item} animation={scrollXIndex} index={index}/>
           )
         }}
       />
