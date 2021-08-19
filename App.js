@@ -7,7 +7,12 @@ import {
   Text, 
   View,
 } from 'react-native';
-import { useSharedValue, withSpring } from "react-native-reanimated"
+import Animated, { 
+  interpolate, 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withSpring
+} from "react-native-reanimated"
 const { width } = Dimensions.get("screen")
 import { EvilIcons } from "@expo/vector-icons"
 import { SafeAreaView } from "react-native-safe-area-context"
@@ -64,7 +69,25 @@ const SPACING = 10
 const ITEM_WIDTH = width * 0.8 //80% of the screen width
 const ITEM_HEIGHT = ITEM_WIDTH * 1.7
 
-const OverflowItems = ({ data }) => {
+const OverflowItems = ({ data, scrollXIndex }) => {
+  const animatedStyle = useAnimatedStyle(() => {
+    const inputRange = [-1, 0, 1] //we want to flick on at a time
+    const translateYInterpolate = interpolate(
+      scrollXIndex.value,
+      inputRange,
+      [
+        OVERFLOW_HEIGHT, //height of the item
+        0,
+        -OVERFLOW_HEIGHT,
+      ]
+      //FYI: since we did not add clamp, the imputRange will always be increasing
+    )
+    return {
+      transform: [
+        { translateY: translateYInterpolate }
+      ]
+    }
+  })
   return (
     /** 
      * This is for our FLicker effect View at the top of the screen as we 
@@ -75,7 +98,7 @@ const OverflowItems = ({ data }) => {
      * The other item hidden will be moved upwards or downwards based on the active index
      * */
     <View style={styles.overflowContainer}>
-      <View>
+      <Animated.View style={animatedStyle}>
         {data.map((item, index) => {
           return (
             <View key={index} style={styles.itemContainer}>
@@ -95,7 +118,7 @@ const OverflowItems = ({ data }) => {
             </View>
           )
         })}
-      </View>
+      </Animated.View>
     </View>
   )
 }
@@ -158,7 +181,7 @@ export default function App() {
       >
         <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
           <StatusBar hidden />
-          <OverflowItems  data={data}/>
+          <OverflowItems  data={data} scrollXIndex={scrollXIndex}/>
           <FlatList 
             data={data}
             keyExtractor={(_, index) => String(index)}
