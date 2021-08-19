@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { 
   Dimensions,
@@ -7,7 +6,6 @@ import {
 import Animated, {
   useAnimatedStyle,
   interpolate,
-  withSpring
 } from "react-native-reanimated"
 const { width } = Dimensions.get("screen")
 

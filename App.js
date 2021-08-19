@@ -67,7 +67,7 @@ const DATA = [
 const OVERFLOW_HEIGHT = 70
 const SPACING = 10
 const ITEM_WIDTH = width * 0.8 //80% of the screen width
-const ITEM_HEIGHT = ITEM_WIDTH * 1.7
+const VISIBLE_ITEMS = 3
 
 const OverflowItems = ({ data, scrollXIndex }) => {
   const animatedStyle = useAnimatedStyle(() => {
@@ -133,13 +133,27 @@ export default function App() {
     scrollXIndex.value = withSpring(activeIndex, { mass: 0.6275 })
   })
 
-  /*
-  //for anual testing!
   React.useEffect(() => {
+    /**
+     * We want to fect more data when there is only three cards remaining to 
+     * scroll through
+     * 
+     * In real app, you may want to show your own loading bar animaition
+     * https://github.com/software-mansion/react-native-reanimated/issues/871
+     */
+    if(index === data.length - VISIBLE_ITEMS){
+      //get new data
+      //fetch more data
+      setData(currData => currData.concat(data))
+    }
+
+    /*
+    //for anual testing!
     setInterval(() => {
       scrollXIndex.value = Math.floor(Math.random() * data.length)
     }, 3000)
-  })*/
+    */
+  })
 
   return (
     /**
