@@ -108,9 +108,55 @@ export default function App() {
       <FlatList 
         data={data}
         keyExtractor={(_, index) => String(index)}
+        horizontal
+        inverted /** we want to have the last index render first */
+        contentContainerStyle={{
+          flex: 1,
+          justifyContent: "center",
+          padding: SPACING * 2,
+        }}
+        scrollEnabled={false} //we dont want to rely on the flastlist default gestures because we will be adding our own
+        removeClippedSubviews={false} //this will make items visible in android as well
+        /** 
+         * Understanding CellRendererComponent
+         * 
+         * CellRendererComponent is the wrapper for the renderItem. So we can 
+         * change the order of the z-index here
+         * */
+        CellRendererComponent={({ item, index, children, style, ...props }) => {
+          const newStyle = [
+            style,
+            /**
+             * How zIndex works is the deeper you go into the views from the top the lower 
+             * the zIndex. Knowing that we set our flatlist to be inverted. This made the zIndex of the 
+             * last item to be the highest; making it appear at the top of the stack.
+             * 
+             * But we want to revert the index back and having the lastItem in the list to have the 
+             * lowest index
+             * 
+             * we start from the data.length and decrease the zIndex from there
+             */
+            { zIndex: data.length - index} //eg at data[6], the zIndex will be 7 - 6 = 1; at data[5] the zIndex will be 7 - 5 = 2; etc
+          ]
+          return (
+            <View style={newStyle} index={index} {...props}>
+              {children}
+            </View>
+          )
+        }}
         renderItem={({ item, index }) => {
           return (
-            <View>
+            <View 
+              style={{ 
+                /**
+                 * In order to create the carousel stack, we need to set the position
+                 *  of each listItem to be absolute so that the items will be stacked 
+                 * in front of each other (like a FrameLayout in android)
+                 */
+                position: "absolute",
+                left: -ITEM_WIDTH / 2, //position the item to the center of the screen by offesting the left position :)
+              }}
+            >
               <Image 
                 source={{ uri: item.poster }}
                 style={{
