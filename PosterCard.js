@@ -15,10 +15,6 @@ const ITEM_WIDTH = width * 0.8 //80% of the screen width
 const ITEM_HEIGHT = ITEM_WIDTH * 1.7
 const VISIBLE_ITEMS = 3 //we want to make a particular set of items visible in the screen
 
-const SPRING_CONFIG = {
-    mass: 0.5, //make the poster less heavy so that the spring value will not overshoot too much
-}
-
 export default function PosterCard({ item, animation, index }){
 
     const posterAnimatedStyle = useAnimatedStyle(() => {
@@ -73,10 +69,10 @@ export default function PosterCard({ item, animation, index }){
         )
 
         return {
-            opacity: withSpring(opacityInterpolate, SPRING_CONFIG),
+            opacity: opacityInterpolate,
             transform: [
-                { translateX: withSpring(translateXInterpolate, SPRING_CONFIG) },
-                { scale: withSpring(scaleInterpolate, SPRING_CONFIG) }
+                { translateX: translateXInterpolate },
+                { scale: scaleInterpolate }
             ]
         }
     })

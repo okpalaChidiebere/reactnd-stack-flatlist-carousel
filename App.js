@@ -7,11 +7,12 @@ import {
   Text, 
   View,
 } from 'react-native';
-import { useSharedValue } from "react-native-reanimated"
+import { useSharedValue, withSpring } from "react-native-reanimated"
 const { width } = Dimensions.get("screen")
 import { EvilIcons } from "@expo/vector-icons"
 import { SafeAreaView } from "react-native-safe-area-context"
 import PosterCard from './PosterCard';
+import { Directions, FlingGestureHandler, State } from 'react-native-gesture-handler';
 
 const DATA = [
   {
@@ -102,6 +103,12 @@ const OverflowItems = ({ data }) => {
 export default function App() {
   const [data, setData] = React.useState(DATA)
   const scrollXIndex = useSharedValue(0)
+  //we use this index to know when to fetch new data when the user is done scrolling through the current lists
+  const [index, setIndex] = React.useState(0)
+  const handleSetActiveIndex = React.useCallback((activeIndex) => {
+    setIndex(activeIndex)
+    scrollXIndex.value = withSpring(activeIndex, { mass: 0.6275 })
+  })
 
   /*
   //for anual testing!
@@ -112,55 +119,94 @@ export default function App() {
   })*/
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <StatusBar hidden />
-      <OverflowItems  data={data}/>
-      <FlatList 
-        data={data}
-        keyExtractor={(_, index) => String(index)}
-        horizontal
-        inverted /** we want to have the last index render first */
-        contentContainerStyle={{
-          flex: 1,
-          justifyContent: "center",
-          padding: SPACING * 2,
+    /**
+     * We use FlingGestureHandler from react-native-gesture-handler to make our screen list 
+     * swipeable. Remember that we disable the scrollGesture provided by the Flatlist by default.
+     * We added two FlingestureHandlers, one for the left direction and the other for the right direction
+     */
+    <FlingGestureHandler
+      key="left"
+      direction={Directions.LEFT}
+      //listen for onHandlerStage change
+      onHandlerStateChange={ev => {
+        //we want to increase the scrollIndex when the user ends the flingLeft gesture
+        if(ev.nativeEvent.state === State.END){
+          //we check if we are at the end of the list. 
+          if(index === data.length - 1){
+            //we dont want to swpie the last card away and render an empty view to user
+            return
+          }
+          handleSetActiveIndex(index + 1)
+        }
+      }}
+    >
+      <FlingGestureHandler
+        key="right"
+        direction={Directions.RIGHT}
+        //listen for onHandlerStage change
+        onHandlerStateChange={ev => {
+          //we want to increase the scrollIndex when the user ends the flingLeft gesture
+          if(ev.nativeEvent.state === State.END){
+            //we check if we are at the end of the list. 
+            if(index === 0){
+              //you are now at the top of the list, no need to keep scrolling
+              return
+            }
+            handleSetActiveIndex(index - 1)
+          }
         }}
-        scrollEnabled={false} //we dont want to rely on the flastlist default gestures because we will be adding our own
-        removeClippedSubviews={false} //this will make items visible in android as well
-        /** 
-         * Understanding CellRendererComponent
-         * 
-         * CellRendererComponent is the wrapper for the renderItem. So we can 
-         * change the order of the z-index here
-         * */
-        CellRendererComponent={({ item, index, children, style, ...props }) => {
-          const newStyle = [
-            style,
-            /**
-             * How zIndex works is the deeper you go into the views from the top the lower 
-             * the zIndex. Knowing that we set our flatlist to be inverted. This made the zIndex of the 
-             * last item to be the highest; making it appear at the top of the stack.
+      >
+        <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+          <StatusBar hidden />
+          <OverflowItems  data={data}/>
+          <FlatList 
+            data={data}
+            keyExtractor={(_, index) => String(index)}
+            horizontal
+            inverted /** we want to have the last index render first */
+            contentContainerStyle={{
+              flex: 1,
+              justifyContent: "center",
+              padding: SPACING * 2,
+            }}
+            scrollEnabled={false} //we dont want to rely on the flastlist default gestures because we will be adding our own
+            removeClippedSubviews={false} //this will make items visible in android as well
+            /** 
+             * Understanding CellRendererComponent
              * 
-             * But we want to revert the index back and having the lastItem in the list to have the 
-             * lowest index
-             * 
-             * we start from the data.length and decrease the zIndex from there
-             */
-            { zIndex: data.length - index} //eg at data[6], the zIndex will be 7 - 6 = 1; at data[5] the zIndex will be 7 - 5 = 2; etc
-          ]
-          return (
-            <View style={newStyle} index={index} {...props}>
-              {children}
-            </View>
-          )
-        }}
-        renderItem={({ item, index }) => {
-          return (
-            <PosterCard item={item} animation={scrollXIndex} index={index}/>
-          )
-        }}
-      />
-    </SafeAreaView>
+             * CellRendererComponent is the wrapper for the renderItem. So we can 
+             * change the order of the z-index here
+             * */
+            CellRendererComponent={({ item, index, children, style, ...props }) => {
+              const newStyle = [
+                style,
+                /**
+                 * How zIndex works is the deeper you go into the views from the top the lower 
+                 * the zIndex. Knowing that we set our flatlist to be inverted. This made the zIndex of the 
+                 * last item to be the highest; making it appear at the top of the stack.
+                 * 
+                 * But we want to revert the index back and having the lastItem in the list to have the 
+                 * lowest index
+                 * 
+                 * we start from the data.length and decrease the zIndex from there
+                 */
+                { zIndex: data.length - index} //eg at data[6], the zIndex will be 7 - 6 = 1; at data[5] the zIndex will be 7 - 5 = 2; etc
+              ]
+              return (
+                <View style={newStyle} index={index} {...props}>
+                  {children}
+                </View>
+              )
+            }}
+            renderItem={({ item, index }) => {
+              return (
+                <PosterCard item={item} animation={scrollXIndex} index={index}/>
+              )
+            }}
+          />
+        </SafeAreaView>
+      </FlingGestureHandler>
+    </FlingGestureHandler>
   );
 }
 
